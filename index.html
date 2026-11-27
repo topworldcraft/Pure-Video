@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoBlur Studio — TikTok Lossless & 120FPS Uploader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="pill">100% Client-Side • Zero Upload • Pure ISO-BMFF</div>
+            <h1>TikTok Quality &amp; FPS Bypass</h1>
+            <p>
+                Combines <strong>NoBlur</strong> sample-table inflation, <strong>Container Faststart</strong>,
+                <strong>120FPS Method</strong> timescale patching, and optional <strong>ffmpeg.wasm</strong>
+                interpolation/HEVC — directly in your browser.
+            </p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Left: Dropzone & Queue -->
+            <section class="card">
+                <div class="card-title">
+                    <span>1. Select Video(s)</span>
+                    <span class="sub">MP4 / MOV • Processed locally</span>
+                </div>
+
+                <div class="drop-zone" id="dropZone">
+                    <div class="icon">🎬</div>
+                    <h3>Drop MP4 or MOV files here</h3>
+                    <p>or click to browse • Original files are never modified</p>
+                    <input type="file" id="fileInput" accept=".mp4,.mov,video/mp4,video/quicktime" multiple>
+                </div>
+
+                <div class="file-list" id="fileList"></div>
+
+                <div class="progress-box" id="progressBox">
+                    <div class="progress-header">
+                        <span id="progressLabel">Ready</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <div class="log-console" id="logConsole" aria-live="polite">
+                    <div class="log-line">Waiting for video file...</div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="processBtn" disabled>
+                        ⚡ Patch &amp; Optimize
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn" disabled>
+                        Clear
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right: Combined Bypass Settings -->
+            <section class="card">
+                <div class="card-title">
+                    <span>2. Bypass Pipeline</span>
+                    <span class="sub">Instant MP4 Box Patch</span>
+                </div>
+
+                <div class="option-group">
+                    <div class="option-row">
+                        <div class="option-label">
+                            <strong>Sample Table Inflation</strong>
+                            <small>NoBlur + tiktok-quality dummy samples</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="optInflate" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="option-row" id="multiplierRow">
+                        <div class="option-label">
+                            <strong>Inflation Multiplier: <span id="multiplierVal">10x</span></strong>
+                            <small>Higher = denser sample table (10x recommended)</small>
+                        </div>
+                        <input type="range" id="optMultiplier" min="2" max="15" value="10">
+                    </div>
+
+                    <div class="option-row">
+                        <div class="option-label">
+                            <strong>Container Faststart &amp; ftyp</strong>
+                            <small>Move moov before mdat, normalize to isom/iso4</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="optNormalize" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="option-row">
+                        <div class="option-label">
+                            <strong>High-FPS Bypass (120fps-method)</strong>
+                            <small>Divide mvhd/mdhd timescale &amp; duration</small>
+                        </div>
+                        <select id="optFpsBypass">
+                            <option value="auto" selected>Auto (60fps ÷2, 120fps ÷4)</option>
+                            <option value="60">Force ÷2 (60fps → 30fps hdr)</option>
+                            <option value="120">Force ÷4 (120fps → 30fps hdr)</option>
+                            <option value="off">Off</option>
+                        </select>
+                    </div>
+
+                    <div class="option-row">
+                        <div class="option-label">
+                            <strong>Clean udta Signature</strong>
+                            <small>Embed Lavf59.27.100 &amp; clean comment atom</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="optUdta" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="card-title" style="margin-bottom: 0.35rem;">
+                        <span>Optional Heavy Mode</span>
+                        <span class="sub">Lazy-loads ffmpeg.wasm</span>
+                    </div>
+
+                    <div class="option-row">
+                        <div class="option-label">
+                            <strong>FFmpeg Pre-Process</strong>
+                            <small>Only needed for 60fps interpolation or HEVC convert</small>
+                        </div>
+                        <select id="optFfmpegMode">
+                            <option value="none" selected>None (Instant, 0 re-encode)</option>
+                            <option value="vfi60">Interpolate to 60fps (VFI + 1080p)</option>
+                            <option value="hevc1080">Convert to HEVC 1080p (CRF 18)</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Results -->
+        <section class="card result-card" id="resultCard">
+            <div class="card-title">
+                <span>✅ Patched &amp; Ready to Upload</span>
+                <span class="sub" id="resultSummary"></span>
+            </div>
+
+            <table class="stats-table" id="statsTable">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Original</th>
+                        <th>Patched</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="btn-row" id="downloadActions"></div>
+        </section>
+
+        <!-- Instructions & Safety -->
+        <div class="guide-grid">
+            <section class="card">
+                <div class="card-title"><span>📤 How to Upload for Best Quality</span></div>
+                <ol class="guide-list">
+                    <li>Upload via <a href="https://www.tiktok.com/upload" target="_blank" rel="noopener">tiktok.com/upload</a> in a <strong>desktop browser</strong> (or mobile browser in <strong>Desktop Mode</strong>).</li>
+                    <li>Enable any <strong>"HD / High quality"</strong> upload toggle if shown, and keep <strong>Data Saver OFF</strong>.</li>
+                    <li><strong>Do NOT edit</strong>, trim, or add filters/captions inside the TikTok app after patching — do all editing beforehand.</li>
+                    <li>For best results across accounts, stick to <strong>1080p</strong> (60fps or 120fps).</li>
+                </ol>
+            </section>
+
+            <section class="card">
+                <div class="card-title"><span>🛡️ Safety &amp; Practical Notes</span></div>
+                <ul class="guide-list">
+                    <li><strong>Keep your original file:</strong> This tool always creates a new patched copy and never overwrites your source video.</li>
+                    <li><strong>100% private:</strong> All ISO-BMFF box parsing and sample-table inflation run locally in browser memory.</li>
+                    <li><strong>Stay realistic on 4K:</strong> Extreme 4K claims can trigger re-encoding or rejection on some accounts; 1080p is the most reliable target.</li>
+                    <li><strong>Platform changes:</strong> TikTok updates its ingest pipeline periodically, so any bypass method may change in effectiveness over time.</li>
+                </ul>
+            </section>
+        </div>
+
+        <footer class="footer">
+            Static web app combining techniques from NoBlur, tiktok-quality, tiktok-lossless-upload, and 120fps-method.
+        </footer>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
